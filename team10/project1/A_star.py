@@ -1,7 +1,11 @@
 import math
 from queue import PriorityQueue
 
-def a_star(width: int, height: int, start: tuple, goal : tuple):
+def a_star(wrld):
+    start = (0,0)
+    goal = wrld.exitcell
+    print("Goal: ",goal[0],",",goal[1])
+
     frontier = PriorityQueue()
     frontier.put(start,0)
     came_from = {}
@@ -15,7 +19,7 @@ def a_star(width: int, height: int, start: tuple, goal : tuple):
         if current == goal:
             break
 
-        for next in get_neighbors(width, height, current):
+        for next in get_neighbors(wrld, current):
             new_cost = cost_so_far[current] + get_cost(current, next)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
@@ -27,34 +31,25 @@ def a_star(width: int, height: int, start: tuple, goal : tuple):
         return None
     else:
         path = []
-        node = came_from.pop()
+        node = current
         while node != start:
             path.append(node)
             node = came_from[node]
         return path
 
 def get_heuristic(grid: tuple, goal: tuple):
-    return math.sqrt(grid[0]*goal[0] + grid[1]+goal[1])
+    return math.floor(math.sqrt(math.pow(grid[0]+goal[0],2) + math.pow(grid[1]+goal[1],2)))
 
-def get_neighbors(width: int, height: int, cell: tuple):
+def get_neighbors(wrld, cell: tuple):
     neighbors = []
-    if cell[0] > 0:
-        neighbors.append((cell[0]-1,cell[0]))
-        if cell[1] > 0:
-            neighbors.append((cell[0]-1,cell[0]-1))
-        if cell[1] < height-1:
-            neighbors.append((cell[0]-1,cell[0]+1))
-    elif cell[0] < width-1:
-        neighbors.append((cell[0]+1,cell[0]))
-        if cell[1] > 0:
-            neighbors.append((cell[0]+1,cell[0]-1))
-        if cell[1] < height-1:
-            neighbors.append((cell[0]+1,cell[0]+1))
-    else:
-        if cell[1] > 0:
-            neighbors.append((cell[0],cell[0]-1))
-        if cell[1] < height-1:
-            neighbors.append((cell[0],cell[0]+1))
+    for dx in [-1,1]:
+        if (cell[0]+dx)>=0 and (cell[0]+dx)<wrld.width():
+            if wrld.empty_at(cell[0]+dx,cell[1]) or wrld.exit_at(cell[0]+dx,cell[1]):  
+                neighbors.append((cell[0]+dx,cell[1]))
+    for dy in [-1,0,1]:    
+        if (cell[1]+dy)>=0 and (cell[1]+dy)<wrld.height():
+            if wrld.empty_at(cell[0],cell[1]+dy) or wrld.exit_at(cell[0],cell[1]+dy):  
+                neighbors.append((cell[0],cell[1]+dy))
     return neighbors
 
 def get_cost(cell:tuple, next:tuple):
