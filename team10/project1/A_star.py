@@ -1,9 +1,10 @@
 import math
 from queue import PriorityQueue
 
-def a_star(wrld):
-    start = (0,0)
+def a_star(c,wrld):
+    start = (c.x,c.y)
     goal = wrld.exitcell
+    print("Start: ",start[0],",",start[1])
     print("Goal: ",goal[0],",",goal[1])
 
     frontier = PriorityQueue()
