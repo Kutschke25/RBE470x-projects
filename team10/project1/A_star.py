@@ -33,24 +33,22 @@ def a_star(wrld):
         path = []
         node = current
         while node != start:
-            path.append(node)
+            path.insert(0,node)
             node = came_from[node]
         return path
 
 def get_heuristic(grid: tuple, goal: tuple):
-    return math.floor(math.sqrt(math.pow(grid[0]+goal[0],2) + math.pow(grid[1]+goal[1],2)))
+    return math.floor(math.sqrt(math.pow(grid[0]+goal[0],2) + math.pow(grid[1]+goal[1],2))) -1
 
 def get_neighbors(wrld, cell: tuple):
     neighbors = []
-    for dx in [-1,1]:
+    for dx in [-1,0,1]:
         if (cell[0]+dx)>=0 and (cell[0]+dx)<wrld.width():
-            if wrld.empty_at(cell[0]+dx,cell[1]) or wrld.exit_at(cell[0]+dx,cell[1]):  
-                neighbors.append((cell[0]+dx,cell[1]))
-    for dy in [-1,0,1]:    
-        if (cell[1]+dy)>=0 and (cell[1]+dy)<wrld.height():
-            if wrld.empty_at(cell[0],cell[1]+dy) or wrld.exit_at(cell[0],cell[1]+dy):  
-                neighbors.append((cell[0],cell[1]+dy))
+            for dy in [-1,0,1]:    
+                if (cell[1]+dy)>=0 and (cell[1]+dy)<wrld.height():
+                    if wrld.empty_at(cell[0]+dx,cell[1]+dy) or wrld.exit_at(cell[0]+dx,cell[1]+dy):  
+                        neighbors.append((cell[0]+dx,cell[1]+dy))
     return neighbors
 
 def get_cost(cell:tuple, next:tuple):
-    return 1
+    return math.sqrt(math.pow(abs(cell[0]-next[0]),2) + math.pow(abs(cell[1]-next[1]),2))
