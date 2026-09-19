@@ -37,7 +37,6 @@ class MiniMaxCharacter(CharacterEntity):
             self.move(0, 0)
             return
 
-        # Measure only the time spent choosing a move.
         start = time.perf_counter()
 
         dx, dy = minimax.minimax(
