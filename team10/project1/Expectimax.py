@@ -1,47 +1,90 @@
 import math
-from entity import CharacterEntity
-from entity import MovableEntity
-from world import SensedWorld
+from events import Event
+from entity import CharacterEntity,MovableEntity, MonsterEntity
+from sensed_world import SensedWorld
 
-def expectimax_search(c:CharacterEntity, world:SensedWorld):
+def expectimax_search(c:CharacterEntity, world:SensedWorld, depth:int):
     val = -math.inf
     a = ""
-    for new_a in possibleCharacterActions():
-        new_world = update_world(c, world, new_a)
-        new_val = exp_value(c, new_world)
+    #Choosing the max value from possible character actions
+    for new_a in possibleCharacterActions(c,world):
+        print("New a: ",new_a)
+        #The value is evaluated from the expected value of the monsters 
+        new_val = exp_value(c, character_action(c, world, new_a), depth)
+        print("New Val: ",new_val)
         if new_val> val:
             a = new_a
             val = new_val
+    print("Final: ",a)
     return a
 
-def exp_value(c:CharacterEntity,world:SensedWorld):
-    if(terminal_test(c,world)):
-        return world.scores[c.name]
+def exp_value(c:CharacterEntity,new_state:tuple[SensedWorld,list], depth:int):
+    print("EXP VALUE____________")
+    (world,happenings) = new_state
+    print("e2:",happenings)
+    for e in happenings:  
+        print("e3:",e)
+        match(e.tpe):
+            case Event.CHARACTER_FOUND_EXIT:
+                print("M Terminal! Found Exit")
+                return 100
+            case Event.CHARACTER_KILLED_BY_MONSTER:
+                print("M Terminal! Killed")
+                return -10000
+            case Event.BOMB_HIT_CHARACTER:
+                print("M Terminal! Blew up")
+                return -10000
+    if(depth<=0):
+        c_val = character_value(c,world)
+        print("M Terminal!", world.me(c).x,world.me(c).y, world.scores[c.name],c_val)
+        return c_val
+    else:
+        depth-=1
     v = 0
-    for a,p in possibleMonsterActions(world):
-        new_world = update_world(c, world, a)
-        v += p*max_value(c,new_world)
+    for k,m in world.monsters.items():
+        for a,p in possibleMonsterActions(m[0], world).items():
+            v += p*max_value(c,world.next(),depth)
+    print("E",v)
     return v
 
-def max_value(c:CharacterEntity,world:SensedWorld):
-    if(terminal_test(c,world)):
-        return world.scores[c.name]
+def max_value(c:CharacterEntity,new_state:tuple[SensedWorld,list],depth:int):
+    print("MAX VALUE____________")
+    (world,happenings) = new_state
+    print("e4:",happenings)
+    for e in happenings:  
+        print("e5:",e)
+        match(e.tpe):
+            case Event.CHARACTER_FOUND_EXIT:
+                print("M Terminal! Found Exit")
+                return 100
+            case Event.CHARACTER_KILLED_BY_MONSTER:
+                print("M Terminal! Killed")
+                return -10000
+            case Event.BOMB_HIT_CHARACTER:
+                print("M Terminal! Blew up")
+                return -10000
+    if(depth<=0):
+        c_val = character_value(c,world)
+        print("M Terminal!", world.me(c).x,world.me(c).y, world.scores[c.name],c_val)
+        return c_val
+    else:
+        depth-=1
     v = -math.inf
-    for new_a in possibleCharacterActions():
-        new_world = update_world(c, world, new_a)
-        new_v = exp_value(c,new_world)
+    for new_a in possibleCharacterActions(c,world):
+        new_v = exp_value(c,character_action(c, world, new_a),depth)
+        print("M", new_a,new_v)
         if(new_v>v):
             v = new_v
     return v
 
-def update_world(e:MovableEntity, world:SensedWorld, new_a:str):
-    if(e is CharacterEntity):
-        dx = 0
-        dy = 0
+def character_action(c:CharacterEntity, world:SensedWorld, new_a:str):
+    dx = 0
+    dy = 0
+    if(new_a == "b"):
+        world.me(c).place_bomb()
+    else:
         for a in new_a:
             match (a):
-                case "b":
-                    e.place_bomb()
                 case "w":
                     dy = -1
                 case "s":
@@ -50,18 +93,23 @@ def update_world(e:MovableEntity, world:SensedWorld, new_a:str):
                     dx = -1
                 case "d":
                     dx = 1
-        if(new_a != "b"):
-            e.move(dx,dy)
-    return world
+    print("~",dx,dy)
+    world.me(c).move(dx,dy)
+    print("!",world.me(c).dx,world.me(c).dy)
+    print("@",world.me(c).x,world.me(c).y)
+    (new_world,new_events) = world.next()
+    # print("#",new_world.me(c).dx,new_world.me(c).dy)
+    # print("$",new_world.me(c).x,new_world.me(c).y)
+    return (new_world,new_events)
     
 
 def possibleCharacterActions(c:CharacterEntity, world:SensedWorld):
     possible_actions = []
 
     for dx in [-1,0,1]:
-        if(c.x +dx >0 or c.x <world.width()):
+        if(c.x +dx >=0 and c.x+dx <world.width()):
             for dy in [-1,0,1]:
-                if(c.y +dy >0 or c.y <world.height()):
+                if(c.y +dy >=0 and c.y+dy <world.height()):
                     if world.empty_at(c.x+dx, c.y+dy) or world.exit_at(c.x+dx,c.y+dy):
                         action = ""
                         if(dy == 1): action = action + "s"
@@ -71,6 +119,7 @@ def possibleCharacterActions(c:CharacterEntity, world:SensedWorld):
                         elif(dx == 1): action = action + "d"
                         possible_actions.append(action)
 
+    can_bomb = True
     for k,b in world.bombs.items():
         if b.owner == c:
             can_bomb = False
@@ -80,12 +129,36 @@ def possibleCharacterActions(c:CharacterEntity, world:SensedWorld):
 
     return possible_actions
 
-def possibleMonsterActions(world:SensedWorld):
-    return
+def possibleMonsterActions(m: MonsterEntity, world:SensedWorld):
+    pre_possibleMonsterActions = []
+    for dx in [-1,0,1]:
+        if(m.x +dx >0 and m.x+dx <world.width()):
+            for dy in [-1,0,1]:
+                if(m.y +dy >0 and m.y+dy <world.height()):
+                    if world.empty_at(m.x+dx, m.y+dy) or world.exit_at(m.x+dx,m.y+dy):
+                        action = ""
+                        if(dy == 1): action = action + "s"
+                        elif(dy == -1): action = action + "w"
 
-def terminal_test(c:CharacterEntity, world:SensedWorld):
-    c_exists = True
-    for k,char in world.characters:
-        if(char == c):
-            c_exists = False
-    return c_exists
+                        if(dx == -1): action = action + "a"
+                        elif(dx == 1): action = action + "d"
+                        pre_possibleMonsterActions.append(action)
+
+    possibleMonsterActions = {}
+    for a in pre_possibleMonsterActions:
+        possibleMonsterActions[a] = 1.0 / len(pre_possibleMonsterActions)
+    return possibleMonsterActions
+
+# def terminal_test(events:list):
+#     ended = False
+#     for e in events:
+#         print("e:",e)
+#         if(e == Event.CHARACTER_FOUND_EXIT or e == Event.CHARACTER_KILLED_BY_MONSTER or e == Event.BOMB_HIT_CHARACTER):
+#             ended = True
+#     return ended
+
+def character_value(c:CharacterEntity,world:SensedWorld):
+    score_weight = 0.1
+    distance = (math.sqrt(math.pow(world.me(c).x+world.exitcell[0],2) + math.pow(world.me(c).y+world.exitcell[1],2)))
+    
+    return score_weight*world.scores[c.name] + (1.0-score_weight)*distance
