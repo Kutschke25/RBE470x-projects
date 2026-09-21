@@ -16,6 +16,7 @@ from testcharacter import TestCharacter
 from interactivecharacter import InteractiveCharacter
 
 from minimaxcharacter import MiniMaxCharacter
+from HCcharacter import HCharacter
 
 # Create the game
 g = Game.fromfile('map.txt')
@@ -48,7 +49,7 @@ g.add_character(MiniMaxCharacter("me", # name
 # Run!
 
 # Use this if you want to press ENTER to continue at each step
-g.go(0)
+g.go(1)
 
 # Use this if you want to proceed automatically
 #g.go(1)
