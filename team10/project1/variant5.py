@@ -31,7 +31,7 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 ))
 
 # TODO Add your character
-g.add_character(HCharacter("me", # name
+g.add_character(MiniMaxCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))

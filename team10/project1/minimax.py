@@ -99,25 +99,4 @@ def get_moves(world, x, y):
     return moves
 
 def monster_moves(world, monster):
-    if monster.name == "stupid":
-        return get_moves(world, monster.x, monster.y)
-    ranges = [1]
-    if monster.name == "aggressive":
-        ranges = [1, 2]
-    moves = set()
-    for radius in ranges:
-        model = SelfPreservingMonster(monster.name, monster.avatar, monster.x, monster.y, radius)
-        model.move(monster.dx, monster.dy)
-        blocked = model.must_change_direction(world)
-        found, dx, dy = model.look_for_character(world)
-        if found and not blocked:
-            model.move(dx, dy)
-            moves.add((model.dx, model.dy))
-        elif blocked or (model.dx == 0 and model.dy == 0):
-            safe_moves = model.look_for_empty_cell(world)
-            if not safe_moves:
-                safe_moves = [(0, 0)]
-            moves.update(safe_moves)
-        else:
-            moves.add((model.dx, model.dy))
-    return sorted(moves)
+    return get_moves(world, monster.x, monster.y)
