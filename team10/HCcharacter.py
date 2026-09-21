@@ -28,12 +28,14 @@ class HCharacter(CharacterEntity):
 
         start = time.perf_counter()
         dx, dy = localsearch.hill_climbing(wrld, self)
-        elapsed = time.perf_counter() - start
+        speed = time.perf_counter() - start
 
-        self.decision_times.append(elapsed)
+        self.decision_times.append(speed)
         average = sum(self.decision_times) / len(self.decision_times)
+        tot = sum(self.decision_times)
 
-        print("Current decision:", round(elapsed, 6), "s")
+        print("Current decision:", round(speed, 6), "s")
+        print("Total:", round(tot, 6), "s")
         print("Mean:", round(average, 6), "s")
         print("Worst:", round(max(self.decision_times), 6), "s")
         print("Total moves:", self.total_moves)

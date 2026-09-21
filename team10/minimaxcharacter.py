@@ -46,11 +46,15 @@ class MiniMaxCharacter(CharacterEntity):
         speed = time.perf_counter() - start
         self.decision_times.append(speed)
 
+        tot = sum(self.decision_times)
+        best = min(self.decision_times)
         mean = sum(self.decision_times) / len(self.decision_times)
         worst = max(self.decision_times)
 
         print("Current decision:", round(speed, 4), "s")
         print("Mean:", round(mean, 4), "s")
+        print("Total:", round(tot, 4), "s")
         print("Worst:", round(worst, 4), "s")
+        print("Best:", round(best, 4), "s")
 
         self.move(dx, dy)

@@ -25,12 +25,12 @@ g.add_monster(StupidMonster("stupid", # name
 ))
 
 # TODO Add your character
-g.add_character(ExpectiMaxCharacter("me", # name
+g.add_character(HCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
 
 # Run!
 
-g.go(0)
+g.go(1)
 
