@@ -4,29 +4,10 @@ sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
 from colorama import Fore, Back
-import A_star
 import Expectimax
 
 class TestCharacter(CharacterEntity):
     def do(self, wrld):
-        # still_alive = False
-        # for k,c in wrld.characters.items():
-        #     for char in c:
-        #         if(char == self):
-        #             still_alive = True
-        # if(still_alive):
-
-        # path = A_star.a_star(self,wrld,wrld.exitcell)[0]
-        # if(path != None):
-        #     for node in path:   
-        #         self.set_cell_color(node[0],node[1], Fore.RED + Back.GREEN)
-        # else:
-        #     print("No Path!")
-
-        # dx = path[0][0]-self.x
-        # dy = path[0][1]-self.y
-        # self.move(dx,dy)
-        
         action = Expectimax.expectimax_search(self, wrld,1)
         if(action == "b"):
             self.place_bomb()
