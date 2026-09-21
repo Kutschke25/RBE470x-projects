@@ -48,6 +48,11 @@ class A_star_character(CharacterEntity):
         mean = sum(self.decision_times) / len(self.decision_times)
         worst = max(self.decision_times)
 
+        total = sum(self.decision_times)
+        mean = sum(self.decision_times) / len(self.decision_times)
+        worst = max(self.decision_times)
+
         print("Current decision:", round(speed, 4), "s")
+        print("Total:", round(total, 4), "s")
         print("Mean:", round(mean, 4), "s")
         print("Worst:", round(worst, 4), "s")

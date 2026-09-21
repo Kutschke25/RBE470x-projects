@@ -26,7 +26,7 @@ g.add_monster(SelfPreservingMonster("selfpreserving", # name
 ))
 
 # TODO Add your character
-g.add_character(MiniMaxCharacter("me", # name
+g.add_character(TestCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))

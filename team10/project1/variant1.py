@@ -14,7 +14,7 @@ from testcharacter import TestCharacter
 
 # Uncomment this if you want the interactive character
 from interactivecharacter import InteractiveCharacter
-
+from testcharacter import TestCharacter
 from minimaxcharacter import MiniMaxCharacter
 from HCcharacter import HCharacter
 from expectimax_character import ExpectiMaxCharacter
@@ -37,7 +37,7 @@ g = Game.fromfile('map.txt')
 #                                     0, 0  # position
 #))
 
-g.add_character(MiniMaxCharacter("me", # name
+g.add_character(A_star_character("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
