@@ -1,9 +1,8 @@
 import math
 from queue import PriorityQueue
 
-def a_star(c,wrld):
+def a_star(c,wrld,goal):
     start = (c.x,c.y)
-    goal = wrld.exitcell
     print("Start: ",start[0],",",start[1])
     print("Goal: ",goal[0],",",goal[1])
 
@@ -36,7 +35,7 @@ def a_star(c,wrld):
         while node != start:
             path.insert(0,node)
             node = came_from[node]
-        return path
+        return (path,cost_so_far[current])
 
 def get_heuristic(grid: tuple, goal: tuple):
     return math.floor(math.sqrt(math.pow(grid[0]+goal[0],2) + math.pow(grid[1]+goal[1],2))) -1

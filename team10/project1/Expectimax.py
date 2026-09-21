@@ -2,6 +2,7 @@ import math
 from events import Event
 from entity import CharacterEntity,MovableEntity, MonsterEntity
 from sensed_world import SensedWorld
+import A_star
 
 def expectimax_search(c:CharacterEntity, world:SensedWorld, depth:int):
     val = -math.inf
@@ -11,32 +12,30 @@ def expectimax_search(c:CharacterEntity, world:SensedWorld, depth:int):
         print("New a: ",new_a)
         #The value is evaluated from the expected value of the monsters 
         new_val = exp_value(c, character_action(c, world, new_a), depth)
-        print("New Val: ",new_val)
+        print(new_a,new_val)
         if new_val> val:
             a = new_a
             val = new_val
-    print("Final: ",a)
+    print("Final: ",a,val)
     return a
 
 def exp_value(c:CharacterEntity,new_state:tuple[SensedWorld,list], depth:int):
-    print("EXP VALUE____________")
+ #   print("EXP VALUE____________")
     (world,happenings) = new_state
-    print("e2:",happenings)
     for e in happenings:  
-        print("e3:",e)
         match(e.tpe):
             case Event.CHARACTER_FOUND_EXIT:
-                print("M Terminal! Found Exit")
+                print("E Terminal! Found Exit")
                 return 100
             case Event.CHARACTER_KILLED_BY_MONSTER:
-                print("M Terminal! Killed")
+                print("E Terminal! Killed")
                 return -10000
             case Event.BOMB_HIT_CHARACTER:
-                print("M Terminal! Blew up")
+                print("E Terminal! Blew up")
                 return -10000
     if(depth<=0):
         c_val = character_value(c,world)
-        print("M Terminal!", world.me(c).x,world.me(c).y, world.scores[c.name],c_val)
+        print("E Terminal!", world.me(c).x,world.me(c).y, world.scores[c.name],c_val)
         return c_val
     else:
         depth-=1
@@ -48,11 +47,9 @@ def exp_value(c:CharacterEntity,new_state:tuple[SensedWorld,list], depth:int):
     return v
 
 def max_value(c:CharacterEntity,new_state:tuple[SensedWorld,list],depth:int):
-    print("MAX VALUE____________")
+  #  print("MAX VALUE____________")
     (world,happenings) = new_state
-    print("e4:",happenings)
-    for e in happenings:  
-        print("e5:",e)
+    for e in happenings:
         match(e.tpe):
             case Event.CHARACTER_FOUND_EXIT:
                 print("M Terminal! Found Exit")
@@ -64,7 +61,7 @@ def max_value(c:CharacterEntity,new_state:tuple[SensedWorld,list],depth:int):
                 print("M Terminal! Blew up")
                 return -10000
     if(depth<=0):
-        c_val = character_value(c,world)
+        c_val = character_value(world.me(c),world)
         print("M Terminal!", world.me(c).x,world.me(c).y, world.scores[c.name],c_val)
         return c_val
     else:
@@ -72,7 +69,7 @@ def max_value(c:CharacterEntity,new_state:tuple[SensedWorld,list],depth:int):
     v = -math.inf
     for new_a in possibleCharacterActions(c,world):
         new_v = exp_value(c,character_action(c, world, new_a),depth)
-        print("M", new_a,new_v)
+      #  print("M", new_a,new_v)
         if(new_v>v):
             v = new_v
     return v
@@ -93,13 +90,15 @@ def character_action(c:CharacterEntity, world:SensedWorld, new_a:str):
                     dx = -1
                 case "d":
                     dx = 1
-    print("~",dx,dy)
+ #   print("~",dx,dy)
     world.me(c).move(dx,dy)
-    print("!",world.me(c).dx,world.me(c).dy)
-    print("@",world.me(c).x,world.me(c).y)
+ #   print("!",world.me(c).dx,world.me(c).dy)
+  #  print("@",world.me(c).x,world.me(c).y)
     (new_world,new_events) = world.next()
-    # print("#",new_world.me(c).dx,new_world.me(c).dy)
-    # print("$",new_world.me(c).x,new_world.me(c).y)
+    if(new_world.me(c)):
+      new_world.me(c).move(0,0)
+   #   print("#",new_world.me(c).dx,new_world.me(c).dy)
+    #  print("$",new_world.me(c).x,new_world.me(c).y)
     return (new_world,new_events)
     
 
@@ -149,16 +148,18 @@ def possibleMonsterActions(m: MonsterEntity, world:SensedWorld):
         possibleMonsterActions[a] = 1.0 / len(pre_possibleMonsterActions)
     return possibleMonsterActions
 
-# def terminal_test(events:list):
-#     ended = False
-#     for e in events:
-#         print("e:",e)
-#         if(e == Event.CHARACTER_FOUND_EXIT or e == Event.CHARACTER_KILLED_BY_MONSTER or e == Event.BOMB_HIT_CHARACTER):
-#             ended = True
-#     return ended
-
 def character_value(c:CharacterEntity,world:SensedWorld):
     score_weight = 0.1
-    distance = (math.sqrt(math.pow(world.me(c).x+world.exitcell[0],2) + math.pow(world.me(c).y+world.exitcell[1],2)))
-    
-    return score_weight*world.scores[c.name] + (1.0-score_weight)*distance
+    distance = math.floor((math.sqrt(math.pow(world.exitcell[0]-world.me(c).x,2) + math.pow(world.exitcell[1]-world.me(c).y,2))))-1
+    path_goal = A_star.a_star(c,world,world.exitcell)
+    # if(path_home):
+    #     print("Cost home:",path_home[1])
+    #     return score_weight*world.time + (1.0-score_weight)*(distance-path_home[1])
+    # else:
+    #     return score_weight*world.time + (1.0-score_weight)*(distance)
+    if(path_goal):
+        print("Cost goal:",path_goal[1])
+        print("distance goal:",distance)
+        return 1/(distance+path_goal[1])
+    else:
+        return 1/(distance)
