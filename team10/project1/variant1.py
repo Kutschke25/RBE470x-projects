@@ -17,6 +17,8 @@ from interactivecharacter import InteractiveCharacter
 
 from minimaxcharacter import MiniMaxCharacter
 from HCcharacter import HCharacter
+from expectimax_character import ExpectiMaxCharacter
+from astar_character import A_star_character
 
 # Create the game
 g = Game.fromfile('map.txt')

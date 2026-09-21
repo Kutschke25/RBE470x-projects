@@ -13,6 +13,8 @@ sys.path.insert(1, '../teamNN')
 from testcharacter import TestCharacter
 from minimaxcharacter import MiniMaxCharacter
 from HCcharacter import HCharacter
+from expectimax_character import ExpectiMaxCharacter
+from astar_character import A_star_character
 
 # Create the game
 random.seed(123) # TODO Change this if you want different random choices
@@ -23,7 +25,7 @@ g.add_monster(StupidMonster("stupid", # name
 ))
 
 # TODO Add your character
-g.add_character(HCharacter("me", # name
+g.add_character(ExpectiMaxCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
