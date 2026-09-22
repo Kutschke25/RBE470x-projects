@@ -18,30 +18,38 @@ class A_star_character(CharacterEntity):
         self.previous_position = (x, y)
         
     def count_move(self):
+        #if the character changed position, increment the total move counter
         position = (self.x, self.y)
         if position != self.previous_position:
             self.total_moves += 1
             self.previous_position = position
 
     def done(self, wrld):
+        #adds up the total moves the character made
         self.count_move()
         print("Final total moves:", self.total_moves)
     
     def do(self, wrld):
+        #Stuff for timing/performance evaluation
         self.count_move()
         start = time.perf_counter()
 
+        #_____________________________________________________________________________
+
+        #Find a path to the goal using A*
         path = A_star.a_star(self,wrld,wrld.exitcell)[0]
         if(path != None):
-            for node in path:   
-                self.set_cell_color(node[0],node[1], Fore.RED + Back.GREEN)
+            #If a path exists set the characters new intended movement
+            dx = path[0][0]-self.x
+            dy = path[0][1]-self.y
+            self.move(dx,dy)
         else:
+            #Else do nothing
             print("No Path!")
 
-        dx = path[0][0]-self.x
-        dy = path[0][1]-self.y
-        self.move(dx,dy)
+        #_____________________________________________________________________________
 
+        #Stuff for timing/performance evaluation
         speed = time.perf_counter() - start
         self.decision_times.append(speed)
 
