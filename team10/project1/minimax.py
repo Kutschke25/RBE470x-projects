@@ -8,7 +8,7 @@ from sensed_world import SensedWorld
 from events import Event
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
-def minimax(world, character, depth=2):
+def minimax(world, character, depth):
     me = world.me(character)
     distances = {world.exitcell: 0}
     queue = [world.exitcell]
