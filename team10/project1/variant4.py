@@ -24,10 +24,23 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 ))
 
 # TODO Add your character
-g.add_character(MiniMaxCharacter("me", # name
+# Uncomment this if you want the test character
+g.add_character(TestCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
+
+# Uncomment this if you want the a star character
+# g.add_character(A_star_character("me", # name
+#                               "C",  # avatar
+#                               0, 0  # position
+# ))
+
+# Uncomment this if you want the minimax character
+# g.add_character(MiniMaxCharacter("me", # name
+#                               "C",  # avatar
+#                               0, 0  # position
+# ))
 
 # Run!
 g.go(1)

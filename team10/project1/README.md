@@ -39,5 +39,6 @@ In the fifth variant of this scenario, two monsters are present: an aggressive
 one and a stupid one.
 
 ## Our solution:
+Our solution is in the testcharacter.py file. We have added the A star character, minimax character, and test character to each of the variant files. Our final solution is the only un-commented character. To test our final solution, just use "python variantx.py", where x is the number of the variant. 
 
-
+To see the other characters, comment out the test character code, and un-comment the other character. Then use "python variantx.py", where x is the number of the variant.

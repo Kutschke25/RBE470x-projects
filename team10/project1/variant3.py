@@ -12,8 +12,6 @@ from monsters.selfpreserving_monster import SelfPreservingMonster
 sys.path.insert(1, '../teamNN')
 from testcharacter import TestCharacter
 from minimaxcharacter import MiniMaxCharacter
-from HCcharacter import HCharacter
-from expectimax_character import ExpectiMaxCharacter
 from astar_character import A_star_character
 
 # Create the game
@@ -26,10 +24,23 @@ g.add_monster(SelfPreservingMonster("selfpreserving", # name
 ))
 
 # TODO Add your character
+# Uncomment this if you want the test character
 g.add_character(TestCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
+
+# Uncomment this if you want the a star character
+# g.add_character(A_star_character("me", # name
+#                               "C",  # avatar
+#                               0, 0  # position
+# ))
+
+# Uncomment this if you want the minimax character
+# g.add_character(MiniMaxCharacter("me", # name
+#                               "C",  # avatar
+#                               0, 0  # position
+# ))
 
 # Run!
 g.go(1)

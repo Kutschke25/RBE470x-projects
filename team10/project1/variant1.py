@@ -16,20 +16,22 @@ from astar_character import A_star_character
 # Create the game
 g = Game.fromfile('map.txt')
 
-# TODO Add your character
 
+# TODO Add your character
 # Uncomment this if you want the test character
 g.add_character(TestCharacter("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
 
+# Uncomment this if you want the a star character
 # g.add_character(A_star_character("me", # name
 #                               "C",  # avatar
 #                               0, 0  # position
 # ))
 
-# g.add_character(MiniMaxcharacter("me", # name
+# Uncomment this if you want the minimax character
+# g.add_character(MiniMaxCharacter("me", # name
 #                               "C",  # avatar
 #                               0, 0  # position
 # ))
