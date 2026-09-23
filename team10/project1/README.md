@@ -37,3 +37,7 @@ In the fourth variant of this scenario, an aggressive monster is present:
 
 In the fifth variant of this scenario, two monsters are present: an aggressive
 one and a stupid one.
+
+## Our solution:
+
+
