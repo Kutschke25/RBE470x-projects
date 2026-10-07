@@ -1,75 +1,162 @@
 import math
+
 import A_star
+from events import Event
 
-#Distance to closest item
-def get_distance_to_closest(me, list):
-    closest_val = math.inf
+def get_weights(me, world):
+    return [
+        time_spent_function(me, world),
+        monster_distance_function(me, world),
+        exit_distance_function(me, world),
+        bomb_distance_function(me, world),
+        explosion_distance_function(me, world),
+        is_valid_path(me, world),
+        safe_moves_functions(me, world),
+    ]
+
+def get_distance_to_closest(me, things):
+    closest_distance = math.inf
     items = []
-    for group in list.values():
-        items.extend(group)
-    if(len(items)>0):
-        for i in range(1,len(items)):
-            new_val = math.sqrt(math.pow((me.x-items[i].x),2) + math.pow((me.y-items[i].y),2))
-            if(new_val < closet_val):
-                closet_val = new_val
-    return closest_val
 
-#function for time spent in game
-def time_spent_function(me,world):
+    for group in things.values():
+        if isinstance(group, list):
+            items.extend(group)
+        else:
+            items.append(group)
+
+    for item in items:
+        distance = math.sqrt((me.x - item.x)**2 + (me.y - item.y)**2)
+        if distance < closest_distance:
+            closest_distance = distance
+
+    return closest_distance
+
+
+def time_spent_function(me, world):
     return 1 / (world.time + 1)
 
-#function for distance to closest monster
+
 def monster_distance_function(me, world):
-    return 1 / (get_distance_to_closest(me, world.monsters) +1)
+    distance = get_distance_to_closest(me, world.monsters)
 
-#Distance to Goal
-def exit_distance_function(me, world):
-    return 1 / (math.sqrt(math.pow((me.x-world.exitcell[0]),2) + math.pow((me.y-world.exitcell[1]),2)) +1)
-
-#Distance to Bomb
-def bomb_distance_function(me, world):
-    return 1 / (get_distance_to_closest(me, world.bombs) +1)
-
-#Distance to Explosion
-def explosion_distance_function(me, world):
-    return 1 / (get_distance_to_closest(me, world.explosions)+1)
-
-#Valid Path To Goal
-def is_valid_path(me,world):
-    path = A_star.a_star(me,world,world.exitcell)
-    if(path):
-        return 1
-    else:
+    # Only react to nearby monsters.
+    if distance > 3:
         return 0
 
-#Number of Safe Moves
-#A character has 9 max moves when it is not trapped by hazards and can place a bomb.
-#The more moves available to the character, the better chance it has of surviving
-def safe_moves_functions(me,world):
-    return len(get_safe_moves(me,world)) / 9
+    return 1 / (distance + 1)
+
+
+def exit_distance_function(me, world):
+    dx = me.x - world.exitcell[0]
+    dy = me.y - world.exitcell[1]
+    return 1 / (math.sqrt(dx**2 + dy**2) + 1)
+
+
+def bomb_distance_function(me, world):
+    return 1 / (get_distance_to_closest(me, world.bombs) + 1)
+
+
+def explosion_distance_function(me, world):
+    return 1 / (get_distance_to_closest(me, world.explosions) + 1)
+
+
+def is_valid_path(me, world):
+    path = A_star.a_star(me, world, world.exitcell)
+    return int(path is not None)
+
+
+def safe_moves_functions(me, world):
+    # This count includes waiting and bombing, not just movement.
+    return len(get_safe_moves(me, world)) / 9
+
 
 def get_safe_moves(me, world):
-    moves = []
-    moves.append("n")
-    for b in world.bombs.values():
-        if(b.owner == world.me(me)):
-            moves.append("b")
+    moves = ["n"]
+    can_bomb = True
+
+    for bomb in world.bombs.values():
+        if bomb.owner.name == me.name:
+            can_bomb = False
+            break
+
+    if can_bomb:
+        moves.append("b")
 
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
             nx, ny = me.x + dx, me.y + dy
             if 0 <= nx < world.width() and 0 <= ny < world.height():
-                if world.empty_at(nx,ny) or world.exit_at(nx,ny):
-                    moves.append(("",dx,dy))
+                if world.empty_at(nx, ny) or world.exit_at(nx, ny):
+                    moves.append((dx, dy))
 
     return moves
 
+
 def give_custom_score(character, world):
+    reward = -0.1
+
     for event in world.events:
-        if event.tpe == Event.CHARACTER_KILLED_BY_MONSTER and event.character.name == character.name:
-            return -1000000 - world.time
-        if event.tpe == Event.BOMB_HIT_CHARACTER and event.character.name == character.name:
-            return -1000000 - world.time
-        if event.tpe == Event.CHARACTER_FOUND_EXIT and event.character.name == character.name:
-            return 1000000 - world.time
-    return 1
+        if event.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
+            if event.character.name == character.name:
+                return -100
+
+        elif event.tpe == Event.BOMB_HIT_CHARACTER:
+            if event.other.name == character.name:
+                return -100
+
+        elif event.tpe == Event.CHARACTER_FOUND_EXIT:
+            if event.character.name == character.name:
+                return 100
+
+        elif event.tpe == Event.BOMB_HIT_WALL:
+            if event.character.name == character.name:
+                reward += 5
+
+    if world.time <= 0:
+        return -100
+
+    return reward
+
+
+def near_wall(me, world):
+    for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+        x = me.x + dx
+        y = me.y + dy
+
+        if 0 <= x < world.width() and 0 <= y < world.height():
+            if world.wall_at(x, y):
+                return True
+    return False
+
+
+def escape_path(me, world):
+    queue = [(me.x, me.y, [])]
+    visited = {(me.x, me.y)}
+
+    # Look for a cell outside the bomb's row and column
+    for x, y, path in queue:
+        if x != me.x and y != me.y:
+            return path
+
+        if len(path) >= world.bomb_time:
+            continue
+
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                nx = x + dx
+                ny = y + dy
+
+                if not (0 <= nx < world.width()
+                        and 0 <= ny < world.height()):
+                    continue
+
+                if (nx, ny) in visited:
+                    continue
+
+                if not world.empty_at(nx, ny):
+                    continue
+
+                visited.add((nx, ny))
+                queue.append((nx, ny, path + [(dx, dy)]))
+
+    return None
