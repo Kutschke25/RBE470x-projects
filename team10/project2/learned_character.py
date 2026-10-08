@@ -22,7 +22,6 @@ class LearnedCharacter(CharacterEntity):
         self.weights = [-0.5, -10, 0.5, -2, -0.25, 0.5, 0.5]
         self.learning_rate = 0.05
         self.gamma = 0.9
-        self.escape_moves = None
 
     def count_move(self):
         #If the character moves, increment the total moves of the character
@@ -43,41 +42,26 @@ class LearnedCharacter(CharacterEntity):
         if me is None or wrld.time <= 0:
             return 0
 
+        #Sums values to create Q-value
         value = 0
-        weights = state_functions.get_weights(me, wrld)
+        function_values = state_functions.get_function_values(me, wrld)
         for i in range(len(self.weights)):
-            value += self.weights[i] * weights[i]
+            value += self.weights[i] * function_values[i]
         return value
 
     def do(self, wrld):
         self.count_move()
         self.move(0, 0)
 
-        # Follows the escape route after placing a bomb
-        # if self.escape_moves is not None:
-        #     if self.escape_moves:
-        #         print("escaping")
-        #         dx, dy = self.escape_moves.pop(0)
-        #         self.move(dx, dy)
-        #         return
-
-        #     # Waits until after the explosion 
-        #     # if wrld.bombs or wrld.explosions:
-        #     #     # if state_functions.get_distance_to_closest(self, wrld.monsters) <= 3:
-        #     #     #     break
-        #     #     return
-
-        #     self.escape_moves = None
-
-        escape = state_functions.escape_path(self, wrld)
         q_val = self.get_Q_value(wrld)
 
         max_value = -math.inf
         best_move = None
 
-        for move in state_functions.get_safe_moves(self, wrld):
+        for move in state_functions.get_valid_actions(self, wrld):
             if move == "b":
-                if not escape or not state_functions.near_wall(self, wrld):
+                #Only use a bomb if you are vertically/horizontally adjacent to a wall
+                if not state_functions.near_wall(self, wrld):
                     continue
 
             next_world = SensedWorld.from_world(wrld)
@@ -105,13 +89,12 @@ class LearnedCharacter(CharacterEntity):
 
         # Updates each weight
         error = max_value - q_val
-        weights = state_functions.get_weights(self, wrld)
+        weights = state_functions.get_function_values(self, wrld)
         for i in range(len(self.weights)):
             self.weights[i] += self.learning_rate * error * weights[i]
         print("Weights:", self.weights)
 
         if best_move == "b":
-            self.escape_moves = escape
             self.place_bomb()
         elif best_move != "n" and best_move is not None:
             dx, dy = best_move
