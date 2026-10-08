@@ -19,7 +19,7 @@ class LearnedCharacter(CharacterEntity):
         self.previous_position = (x, y)
         #self.weights is the list of weights used in Approximate Q-Learning
         #Time spent, Distance to monster, distance to goal, distance to bomb, distance to explosions, available path to goal, number of safe moves
-        self.weights = [-0.5, -0.5, 0.5, -0.5, -0.25, 0.5, 0.15]
+        self.weights = [-0.5, -10, 0.5, -2, -0.25, 0.5, 0.5]
         self.learning_rate = 0.05
         self.gamma = 0.9
         self.escape_moves = None
@@ -94,7 +94,7 @@ class LearnedCharacter(CharacterEntity):
 
             reward = state_functions.give_custom_score(self, next_world)
             if move == "b":
-                reward += 1.0
+                reward += 2
             new_Q = self.get_Q_value(next_world)
             value = reward + self.gamma * new_Q
 
