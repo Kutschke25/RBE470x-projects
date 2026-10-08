@@ -110,7 +110,7 @@ def give_custom_score(character, world):
 
         elif event.tpe == Event.BOMB_HIT_WALL:
             if event.character.name == character.name:
-                reward += 5
+                reward += 2.5
 
     if world.time <= 0:
         return -100
