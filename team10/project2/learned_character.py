@@ -8,7 +8,7 @@ from entity import CharacterEntity
 from colorama import Fore, Back
 from sensed_world import SensedWorld
 from events import Event
-import A_star
+# import A_star
 import state_functions
 
 
@@ -17,19 +17,24 @@ class LearnedCharacter(CharacterEntity):
         super().__init__(name, avatar, x, y)
         self.total_moves = 0
         self.previous_position = (x, y)
-        self.weights = [-0.5, -0.5, 0.5, -0.25, -0.25, 0.5, 0.05]
+        #self.weights is the list of weights used in Approximate Q-Learning
+        #Time spent, Distance to monster, distance to goal, distance to bomb, distance to explosions, available path to goal, number of safe moves
+        self.weights = [-0.5, -0.5, 0.5, -0.5, -0.25, 0.5, 0.15]
         self.learning_rate = 0.05
         self.gamma = 0.9
         self.escape_moves = None
 
     def count_move(self):
+        #If the character moves, increment the total moves of the character
         position = (self.x, self.y)
         if position != self.previous_position:
             self.total_moves += 1
             self.previous_position = position
 
     def done(self, wrld):
+        #Counts the moves done by the character
         self.count_move()
+        print("Final weights:", self.weights)
         print("Final total moves:", self.total_moves)
 
     def get_Q_value(self, wrld):
@@ -49,17 +54,20 @@ class LearnedCharacter(CharacterEntity):
         self.move(0, 0)
 
         # Follows the escape route after placing a bomb
-        if self.escape_moves is not None:
-            if self.escape_moves:
-                dx, dy = self.escape_moves.pop(0)
-                self.move(dx, dy)
-                return
+        # if self.escape_moves is not None:
+        #     if self.escape_moves:
+        #         print("escaping")
+        #         dx, dy = self.escape_moves.pop(0)
+        #         self.move(dx, dy)
+        #         return
 
-            # Waits until after the explosion 
-            if wrld.bombs or wrld.explosions:
-                return
+        #     # Waits until after the explosion 
+        #     # if wrld.bombs or wrld.explosions:
+        #     #     # if state_functions.get_distance_to_closest(self, wrld.monsters) <= 3:
+        #     #     #     break
+        #     #     return
 
-            self.escape_moves = None
+        #     self.escape_moves = None
 
         escape = state_functions.escape_path(self, wrld)
         q_val = self.get_Q_value(wrld)
@@ -93,12 +101,14 @@ class LearnedCharacter(CharacterEntity):
             if value > max_value:
                 best_move = move
                 max_value = value
+            print("Move:", move, "Value:", value)
 
         # Updates each weight
         error = max_value - q_val
         weights = state_functions.get_weights(self, wrld)
         for i in range(len(self.weights)):
             self.weights[i] += self.learning_rate * error * weights[i]
+        print("Weights:", self.weights)
 
         if best_move == "b":
             self.escape_moves = escape
@@ -106,3 +116,5 @@ class LearnedCharacter(CharacterEntity):
         elif best_move != "n" and best_move is not None:
             dx, dy = best_move
             self.move(dx, dy)
+
+        print("Best move:", best_move)
