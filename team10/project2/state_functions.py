@@ -12,7 +12,9 @@ def get_function_values(me, world):
         explosion_distance_function(me, world),
         # is_valid_path(me, world),
         # valid_action_functions(me, world),
-        in_bomb_radius(me,world)
+        in_bomb_radius(me,world),
+        chase_flag(me, world),
+        monster_cheb_function(me, world)
     ]
 
 def get_distance_to_closest(me, things):
@@ -47,7 +49,7 @@ def monster_distance_function(me, world):
     distance = get_distance_to_closest(me, world.monsters)
 
     # Only react to nearby monsters.
-    if distance > 3:
+    if distance > 7:
         return 0
 
     return 1 / (distance + 1)
@@ -134,7 +136,22 @@ def in_bomb_radius(self,world):
                 return 1
     return 0
 
+# Gets the chebyshev distance to the closest monster
+def _closest_monster_cheb(me, world):
+    best = math.inf
+    for group in world.monsters.values():
+        for m in (group if isinstance(group, list) else [group]):
+            best = min(best, max(abs(me.x - m.x), abs(me.y - m.y)))
+    return best
 
+# Monster is inside its lock-on range
+def chase_flag(me, world):
+    return 1 if _closest_monster_cheb(me, world) <= 2 else 0
+
+#Sees the monster from 6 cells out
+def monster_cheb_function(me, world): 
+    d = _closest_monster_cheb(me, world)
+    return 1 / (d + 1) if d <= 6 else 0
 
 def give_custom_score(character, world):
     reward = -0.1
@@ -156,6 +173,10 @@ def give_custom_score(character, world):
             if event.character.name == character.name:
                 reward += 1
 
+        elif event.tpe == Event.BOMB_HIT_MONSTER:
+            if event.character.name == character.name:
+                reward += 10
+
     if world.time <= 0:
         return -100
 
@@ -174,36 +195,3 @@ def near_wall(me, world):
             if world.wall_at(x, y):
                 return True
     return False
-
-#Proposed method to move a character out of a bomb's blast path
-def escape_path(me, world):
-    queue = [(me.x, me.y, [])]
-    visited = {(me.x, me.y)}
-
-    # Look for a cell outside the bomb's row and column
-    for x, y, path in queue:
-        if x != me.x and y != me.y:
-            return path
-
-        if len(path) >= world.bomb_time:
-            continue
-
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                nx = x + dx
-                ny = y + dy
-
-                if not (0 <= nx < world.width()
-                        and 0 <= ny < world.height()):
-                    continue
-
-                if (nx, ny) in visited:
-                    continue
-
-                if not world.empty_at(nx, ny):
-                    continue
-
-                visited.add((nx, ny))
-                queue.append((nx, ny, path + [(dx, dy)]))
-
-    return None

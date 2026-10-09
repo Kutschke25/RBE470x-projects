@@ -2,6 +2,8 @@
 import sys
 import time
 import math
+import json
+import os
 sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
@@ -11,20 +13,40 @@ from events import Event
 # import A_star
 import state_functions
 
+# File where the weights are stored between simulations
+WEIGHTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weights.json")
 
 class LearningCharacter(CharacterEntity):
-    def __init__(self, name, avatar, x, y, new_weights):
+    def __init__(self, name, avatar, x, y, new_weights = [-58.0, 42.7, 3.3, -18.4, -30, -30], weights_file = WEIGHTS_FILE):
         super().__init__(name, avatar, x, y)
         self.total_moves = 0
         self.previous_position = (x, y)
+        self.weights_file = weights_file
         #self.weights is the list of weights used in Approximate Q-Learning
-        #Time spent, Distance to monster, distance to goal, distance to bomb
-        #distance to explosions, available path to goal, number of safe moves, in explosion radius
-        self.weights = new_weights
+        #Distance to monster, distance to exit, distance to explosion, in bomb radius
+        self.weights = self.load_weights(new_weights)
         
-        self.learning_rate = 0.01
+        self.learning_rate = 0.05
         self.gamma = 0.9
 
+    # Get the weights from the file
+    def load_weights(self, default):
+        try:
+            with open(self.weights_file) as f:
+                saved = json.load(f)
+            if isinstance(saved, list) and len(saved) == len(default):
+                return saved
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+        return list(default)
+
+    # Save weights to the file
+    def save_weights(self):
+        tmp = self.weights_file + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(self.weights, f)
+        os.replace(tmp, self.weights_file)
+    
     def count_move(self):
         #If the character moves, increment the total moves of the character
         position = (self.x, self.y)
@@ -35,6 +57,7 @@ class LearningCharacter(CharacterEntity):
     def done(self, wrld):
         #Counts the moves done by the character
         self.count_move()
+        self.save_weights()
         print("Final weights:", self.weights)
         print("Final total moves:", self.total_moves)
 
@@ -62,24 +85,24 @@ class LearningCharacter(CharacterEntity):
         best_move = None
 
         for action in state_functions.get_valid_actions(self, wrld):
-            if action == "b":
-                #Only use a bomb if you are vertically/horizontally adjacent to a wall
-                if not state_functions.near_wall(self, wrld):
-                    continue
+            #Only use a bomb if you are vertically/horizontally adjacent to a wall
+            if action == "b" and not (state_functions.near_wall(self, wrld) or (state_functions.monster_distance_function(self, wrld) != 0)):
+                continue
 
-            me = wrld.me(self)
+            sim = SensedWorld.from_world(wrld)
+            me = sim.me(self)
+            me.move(0,0)
 
             if action == "b":
                 me.place_bomb()
             elif action != "n":
-                dx, dy = action
-                me.move(dx, dy)
+                me.move(*action)
 
-            next_world, _ = wrld.next()
+            next_world, _ = sim.next()
 
             reward = state_functions.give_custom_score(self, next_world)
             if action == "b":
-                reward += 2
+                reward += 0.5
             new_Q = self.get_Q_value(next_world)
             value = reward + self.gamma * new_Q
 

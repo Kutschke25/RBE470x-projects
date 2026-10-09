@@ -18,9 +18,8 @@ class LearnedCharacter(CharacterEntity):
         self.total_moves = 0
         self.previous_position = (x, y)
         #self.weights is the list of weights used in Approximate Q-Learning
-        #Time spent, Distance to monster, distance to goal, distance to bomb
-        #distance to explosions, available path to goal, number of safe moves, in explosion radius
-        self.weights = [-7.208680372065039, 23.358611613714814, 0.19130025857079316, -1.6934413127313834]
+        #monster distance (euclidian), exit distance, explosian distance, in bomb radius, monster chasing, monster distance (chebyshev)
+        self.weights = [-34.71315543021304, 105.06110350366828, -0.833717060692577, -25.10737029677307, -21.13346151214482, -13.491068851225133]
         self.gamma = 0.9
 
     def count_move(self):
