@@ -5,13 +5,14 @@ from events import Event
 
 def get_function_values(me, world):
     return [
-        time_spent_function(me, world),
+        # time_spent_function(me, world),
         monster_distance_function(me, world),
         exit_distance_function(me, world),
-        bomb_distance_function(me, world),
+        #bomb_distance_function(me, world),
         explosion_distance_function(me, world),
-        is_valid_path(me, world),
-        valid_action_functions(me, world)
+        # is_valid_path(me, world),
+        # valid_action_functions(me, world),
+        in_bomb_radius(me,world)
     ]
 
 def get_distance_to_closest(me, things):
@@ -111,6 +112,28 @@ def get_valid_actions(me, world):
                     moves.append((dx, dy))
 
     return moves
+
+def in_bomb_radius(self,world):
+    me = world.me(self)
+    for b in world.bombs.values():
+        #It only matters if the bomb is about to explode
+        if (b.timer>3):
+            return 0
+        for i in range(world.expl_range+1):
+            if me.x == b.x +i and me.y == b.y:
+                print("IN RADIUS")
+                return 1
+            if me.x == b.x -i and me.y == b.y:
+                print("IN RADIUS")
+                return 1
+            if me.y == b.y -i and me.x == b.x:
+                print("IN RADIUS")
+                return 1
+            if me.y == b.y +i and me.x == b.x:
+                print("IN RADIUS")
+                return 1
+    return 0
+
 
 
 def give_custom_score(character, world):

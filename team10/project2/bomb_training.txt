@@ -13,9 +13,5 @@ expl_range 4
 |WWWWWWWW|
 |        |
 |        |
-|        |
-|WWWWWWWW|
-|        |
-|        |
 |       E|
 +--------+

@@ -12,15 +12,17 @@ from events import Event
 import state_functions
 
 
-class LearnedCharacter(CharacterEntity):
-    def __init__(self, name, avatar, x, y):
+class LearningCharacter(CharacterEntity):
+    def __init__(self, name, avatar, x, y, new_weights):
         super().__init__(name, avatar, x, y)
         self.total_moves = 0
         self.previous_position = (x, y)
         #self.weights is the list of weights used in Approximate Q-Learning
         #Time spent, Distance to monster, distance to goal, distance to bomb
         #distance to explosions, available path to goal, number of safe moves, in explosion radius
-        self.weights = [-7.208680372065039, 23.358611613714814, 0.19130025857079316, -1.6934413127313834]
+        self.weights = new_weights
+        
+        self.learning_rate = 0.01
         self.gamma = 0.9
 
     def count_move(self):
@@ -86,6 +88,13 @@ class LearnedCharacter(CharacterEntity):
                 max_value = value
             print("Action:", action, "Value:", value)
 
+        # Updates each weight
+        error = max_value - q_val
+        weights = state_functions.get_function_values(self, wrld)
+        for i in range(len(self.weights)):
+            self.weights[i] += self.learning_rate * error * weights[i]
+        print("Weights:", self.weights)
+
         if best_move == "b":
             self.place_bomb()
         elif best_move != "n" and best_move is not None:
@@ -93,3 +102,4 @@ class LearnedCharacter(CharacterEntity):
             self.move(dx, dy)
 
         print("Best move:", best_move)
+
