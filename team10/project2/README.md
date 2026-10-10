@@ -38,3 +38,6 @@ In the fourth variant of this scenario, an aggressive monster is present:
 
 In the fifth variant of this scenario, two monsters are present: an aggressive
 one and a stupid one.
+
+
+Our solution is in the learning_character.py file. To test our final solution, just use "python variantx.py", where x is the variant number.
