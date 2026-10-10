@@ -11,7 +11,7 @@ from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
 sys.path.insert(1, '../teamNN')
-from learned_character import LearnedCharacter
+from learning_character import LearningCharacter
 
 for i in range(11):
     # Create the game
@@ -24,11 +24,11 @@ for i in range(11):
     ))
 
     # TODO Add your character
-    g.add_character(LearnedCharacter("me", # name
+    g.add_character(LearningCharacter("me", # name
                                 "C",  # avatar
                                 0, 0  # position
     ))
 
     # Run!
     g.go(1)
-    time.sleep(2.5)
+    time.sleep(1)

@@ -11,7 +11,7 @@ from monsters.stupid_monster import StupidMonster
 
 # TODO This is your code!
 sys.path.insert(1, '../teamNN')
-from learned_character import LearnedCharacter
+from learning_character import LearningCharacter
 for i in range(10):
     # Create the game
     random.seed(8) # TODO Change this if you want different random choices
@@ -22,11 +22,11 @@ for i in range(10):
     ))
 
     # TODO Add your character
-    g.add_character(LearnedCharacter("me", # name
+    g.add_character(LearningCharacter("me", # name
                                 "C",  # avatar
                                 0, 0  # position
     ))
 
     # Run!
     g.go(1)
-    time.sleep(2.5)
+    time.sleep(1)

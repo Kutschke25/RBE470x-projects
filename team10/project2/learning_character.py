@@ -57,7 +57,8 @@ class LearningCharacter(CharacterEntity):
     def done(self, wrld):
         #Counts the moves done by the character
         self.count_move()
-        self.save_weights()
+        # If you want to train weights between simulations, uncomment line below
+        # self.save_weights()
         print("Final weights:", self.weights)
         print("Final total moves:", self.total_moves)
 

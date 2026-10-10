@@ -2,6 +2,8 @@
 import sys
 import time
 import math
+import json
+import os
 sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
@@ -11,6 +13,8 @@ from events import Event
 # import A_star
 import state_functions
 
+# File where the weights are stored between simulations
+WEIGHTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weights.json")
 
 class LearnedCharacter(CharacterEntity):
     def __init__(self, name, avatar, x, y):
@@ -19,8 +23,18 @@ class LearnedCharacter(CharacterEntity):
         self.previous_position = (x, y)
         #self.weights is the list of weights used in Approximate Q-Learning
         #monster distance (euclidian), exit distance, explosian distance, in bomb radius, monster chasing, monster distance (chebyshev)
-        self.weights = [-34.71315543021304, 105.06110350366828, -0.833717060692577, -25.10737029677307, -21.13346151214482, -13.491068851225133]
+        self.weights = self.load_weights([-35.96983231492724, 99.70321855894204, -0.49135160861782795, -25.10737029677307, -23.124463870493706, -14.561226577620022])
         self.gamma = 0.9
+
+    def load_weights(self, default):
+            try:
+                with open(WEIGHTS_FILE) as f:
+                    saved = json.load(f)
+                if isinstance(saved, list) and len(saved) == len(default):
+                    return saved
+            except (FileNotFoundError, json.JSONDecodeError):
+                pass
+            return list(default)
 
     def count_move(self):
         #If the character moves, increment the total moves of the character
